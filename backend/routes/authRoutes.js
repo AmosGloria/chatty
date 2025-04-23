@@ -2,8 +2,10 @@
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const passport = require('passport');
-const { signup, login } = require('../controllers/authController');
+const { signup, login, getProfile, getUserById, updateProfile } = require('../controllers/authController');
+const requireAuth = require('../middlewares/authMiddleware'); 
 const router = express.Router();
+
 
 // Signup Route (Email/Password)
 router.post('/signup', signup);
@@ -23,5 +25,12 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
     res.json({ token });
   }
 );
+
+router.get('/profile', requireAuth, getProfile);
+
+router.get('/user/:id', getUserById);
+
+router.put('/profile', requireAuth, updateProfile);
+
 
 module.exports = router;

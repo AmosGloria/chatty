@@ -22,17 +22,33 @@ const getMessagesByChannelOrConversation = async (channelId, conversationId) => 
 };
 
 // Send a message to a channel or a direct message between two users
-const sendMessage = async (text, userId, channelId, conversationId) => {
+const sendMessage = async (text, userId, channelId, conversationId, threadId = null) => {
   return new Promise((resolve, reject) => {
-    const query = 'INSERT INTO messages (text, user_id, channel_id, conversation_id) VALUES (?, ?, ?, ?)';
-    db.query(query, [text, userId, channelId || null, conversationId || null], (err, result) => {
+    const query = `
+      INSERT INTO messages (text, user_id, channel_id, conversation_id, thread_id)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    db.query(query, [text, userId, channelId || null, conversationId || null, threadId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
     });
   });
 };
 
+
+const getThreadReplies = async (parentMessageId) => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT * FROM messages WHERE thread_id = ? ORDER BY created_at ASC';
+    db.query(query, [parentMessageId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+};
+
+
 module.exports = {
   getMessagesByChannelOrConversation,
   sendMessage,
+  getThreadReplies,
 };

@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { findUserByEmail, registerUser } = require('./models/userModel'); // Use your user model
+const { findUserByEmail, registerUser, findUserById } = require('./models/userModel'); // Added findUserById
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
@@ -9,22 +9,25 @@ passport.use(new GoogleStrategy({
 },
 async (accessToken, refreshToken, profile, done) => {
   try {
-    // Check if the user already exists
+    // Check if the user already exists by email
     let user = await findUserByEmail(profile.emails[0].value);
     if (!user) {
-      // Register the user if not found
-      await registerUser(profile.displayName, profile.emails[0].value, 'google-password'); // You can set a dummy password for Google sign-ins
-      user = await findUserByEmail(profile.emails[0].value); // Fetch the newly registered user
+      // Register new user with dummy password
+      await registerUser(profile.displayName, profile.emails[0].value, 'google-password');
+      user = await findUserByEmail(profile.emails[0].value);
     }
-    done(null, user); // Proceed with authenticated user
+    done(null, user); // Authentication complete
   } catch (err) {
     done(err);
   }
 }));
 
+// Serialize only the user's ID into session
 passport.serializeUser((user, done) => done(null, user.id));
+
+// Deserialize user by looking up the user by ID
 passport.deserializeUser((id, done) => {
-  findUserByEmail(id)
+  findUserById(id)
     .then(user => done(null, user))
     .catch(err => done(err));
 });
