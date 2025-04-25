@@ -8,7 +8,9 @@ require('./passportConfig');
 const authRoutes = require('./routes/authRoutes');
 const channelRoutes = require('./routes/channelRoutes');
 const messageRoutes = require('./routes/messageRoutes');
-const reactionRoutes = require('./routes/reactionRoutes'); //
+const reactionRoutes = require('./routes/reactionRoutes'); 
+const channelMemberRoutes = require('./routes/channelMemberRoutes');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +48,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reactions', reactionRoutes); //  Reaction routes
+app.use('/api/channel-members', channelMemberRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to Chaty backend!" });
