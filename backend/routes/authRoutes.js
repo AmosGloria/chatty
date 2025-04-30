@@ -6,31 +6,30 @@ const { signup, login, getProfile, getUserById, updateProfile } = require('../co
 const requireAuth = require('../middlewares/authMiddleware'); 
 const router = express.Router();
 
-
 // Signup Route (Email/Password)
 router.post('/signup', signup);
 
 // Login Route (Email/Password)
 router.post('/login', login);
 
-// Google login route
+// Google login route (corrected with accessType and prompt)
 router.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email'],
+  accessType: 'offline',  
+  prompt: 'consent',       
 }));
 
-// Google callback route
+// Google callback route (redirects with token)
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
     const token = jwt.sign({ userId: req.user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token });
+    res.redirect(`http://localhost:5173/google-success?token=${token}`);  // <--- changed from res.json() to res.redirect()
   }
 );
 
+// Protected Routes
 router.get('/profile', requireAuth, getProfile);
-
 router.get('/user/:id', getUserById);
-
 router.put('/profile', requireAuth, updateProfile);
-
 
 module.exports = router;

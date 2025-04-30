@@ -1,18 +1,20 @@
 const db = require('../connectDatabase');  // Using mysql2 connection
 
-// Create a new channel
-const createChannel = async (name, createdBy) => {
+// Create a new channel (Workspace)
+const createChannel = async (name, description, createdBy, category, isPrivate) => {
   const connection = await db.getConnection(); // get one connection from pool
 
   try {
     await connection.beginTransaction(); // start transaction
 
-    // Step 1: Create the channel
+    // Step 1: Create the channel with new fields (description, category, isPrivate)
     const [channelResult] = await connection.query(
-      'INSERT INTO channels (name, created_by) VALUES (?, ?)',
-      [name, createdBy]
+      'INSERT INTO channels (name, description, created_by, category, is_private) VALUES (?, ?, ?, ?, ?)',
+      [name, description, createdBy, category, isPrivate]
     );
     const channelId = channelResult.insertId;
+
+    const invitationLink = `http://localhost:3000/invite/${channelId}`;
 
     // Step 2: Add the creator as Admin
     await connection.query(
@@ -31,17 +33,23 @@ const createChannel = async (name, createdBy) => {
   }
 };
 
-
-
-// Get all channels
+// Get all channels along with the number of members for each channel
 const getChannels = async () => {
-  return new Promise((resolve, reject) => {
-    const query = 'SELECT * FROM channels';
-    db.query(query, (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
-  });
+  const query = `
+    SELECT c.id, c.name, COUNT(cm.user_id) AS membersCount 
+    FROM channels c
+    LEFT JOIN channel_members cm ON cm.channel_id = c.id
+    GROUP BY c.id;
+  `;
+  
+  // Using promise-based db.query method
+  const [results] = await db.query(query); // Await the promise to resolve
+  
+  return results;
+};
+
+module.exports = {
+  getChannels,
 };
 
 module.exports = {

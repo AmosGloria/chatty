@@ -10,14 +10,17 @@ const authenticate = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // attach user info to the request
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);  // Decode the token
+
+    console.log('Decoded token:', decoded);  // Debugging token
+
+    // Attach user info to the request
     req.user = { userId: decoded.userId };
 
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid token' });
+    console.error('Error verifying token:', err);
+    return res.status(401).json({ error: 'You need to be logged in to create a channel.' });
   }
 };
 

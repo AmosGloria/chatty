@@ -18,6 +18,16 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const corsOptions = {
+  origin: 'http://localhost:5173',  // Your frontend URL
+  methods: 'GET,POST',
+  allowedHeaders: 'Content-Type,Authorization',
+  credentials: true,  // Allow cookies or authorization headers
+};
+
+app.use(cors(corsOptions));  // Apply CORS middleware
+
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,

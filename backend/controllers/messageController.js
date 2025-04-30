@@ -1,17 +1,6 @@
 const db = require('../connectDatabase');
 const { getMessagesByChannelOrConversation, getThreadReplies } = require('../models/messageModel');
 
-// Get messages from a channel or direct messages from a conversation
-const getMessages = async (req, res) => {
-  const { channelId, conversationId } = req.params;
-  try {
-    const messages = await getMessagesByChannelOrConversation(channelId, conversationId);
-    res.status(200).json(messages);
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-};
-
 // Send a message to a channel or as a direct message
 const sendMessage = async (text, userId, channelId, conversationId) => {
   // Check if user is a member of the channel
@@ -30,6 +19,16 @@ const sendMessage = async (text, userId, channelId, conversationId) => {
   return messageResult;
 };
 
+// Get messages from a channel or direct messages from a conversation
+const getMessages = async (req, res) => {
+  const { channelId, conversationId } = req.params;
+  try {
+    const messages = await getMessagesByChannelOrConversation(channelId, conversationId);
+    res.status(200).json(messages);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+};
 
 const replyToMessage = async (req, res) => {
   const { text, userId, channelId, conversationId, thread_id } = req.body;
@@ -84,4 +83,4 @@ const deleteMessage = async (req, res) => {
   }
 };
 
-module.exports = { getMessages, sendMessage, replyToMessage, getReplies, deleteMessage };
+module.exports = {  sendMessage, getMessages,replyToMessage, getReplies, deleteMessage };

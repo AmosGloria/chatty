@@ -7,4 +7,5 @@ const router = express.Router();
 router.post('/', authenticate, create); 
 router.get('/', getAll); // Get all channels (can remain public)
 
+
 module.exports = router;

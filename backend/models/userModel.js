@@ -13,7 +13,7 @@ const findUserById = async (id) => {
 const registerUser = async (name, email, password) => {
   const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
   const query = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-  await db.promise().query(query, [name, email, hashedPassword]);
+  await db.query(query, [name, email, hashedPassword]);
 };
 
 // Find a user by emai

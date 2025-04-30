@@ -3,22 +3,23 @@ const { createChannel, getChannels } = require('../models/channelModel');
 
 const create = async (req, res) => {
   try {
-    const name = req.body.name;
+    const { name, description, category, isPrivate } = req.body;
     const createdBy = req.user.userId; // from auth middleware
 
     if (!name || !createdBy) {
       return res.status(400).json({ error: 'Channel name and authenticated user are required' });
     }
 
-    const result = await createChannel(name, createdBy);
-    res.status(201).json(result);
+    // Create the channel with description, category, and isPrivate
+    const result = await createChannel(name, description, createdBy, category, isPrivate);
+    res.status(201).json({ message: 'Workroom successfully created', channelId: result.channelId });
   } catch (err) {
     console.error('Create channel error:', err.message);
-    res.status(500).json({ error: 'Failed to create channel' });
+    res.status(500).json({ error: 'Failed to create workroom' });
   }
 };
 
-
+// Get all channels
 const getAll = async (req, res) => {
   try {
     const channels = await getChannels();
@@ -27,5 +28,7 @@ const getAll = async (req, res) => {
     res.status(400).send(err.message);
   }
 };
+
+
 
 module.exports = { create, getAll };
