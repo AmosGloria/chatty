@@ -29,6 +29,14 @@ const getAll = async (req, res) => {
   }
 };
 
+const getOne = async (req, res) => {
+  try {
+    const channel = await getChannelById(req.params.id);
+    if (!channel) return res.status(404).json({ error: 'Channel not found' });
+    res.json(channel);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch channel' });
+  }
+};
 
-
-module.exports = { create, getAll };
+module.exports = { create, getAll, getOne };

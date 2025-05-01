@@ -48,11 +48,13 @@ const getChannels = async () => {
   return results;
 };
 
-module.exports = {
-  getChannels,
+const getChannelById = async (channelId) => {
+  const [rows] = await db.query('SELECT * FROM channels WHERE id = ?', [channelId]);
+  return rows[0];
 };
 
 module.exports = {
   createChannel,
   getChannels,
+  getChannelById,
 };
