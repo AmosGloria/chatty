@@ -33,6 +33,31 @@ const createChannel = async (name, description, createdBy, category, isPrivate) 
   }
 };
 
+// Add user to a work room
+const addUserToChannel = async (userId, workRoomId) => {
+  await db.query(
+    'INSERT INTO channel_members (user_id, channel_id) VALUES (?, ?)',
+    [userId, channelId]
+  );
+};
+
+// Get the default team for a work room
+const getDefaultTeam = async (channelId) => {
+  const [rows] = await db.query(
+    'SELECT id FROM teams WHERE work_room_id = ? AND is_default = TRUE LIMIT 1',
+    [channelId]
+  );
+  return rows[0];
+};
+
+// Add user to a team
+const addUserToTeam = async (userId, teamId) => {
+  await db.query(
+    'INSERT INTO team_members (user_id, team_id) VALUES (?, ?)',
+    [userId, teamId]
+  );
+};
+
 // Get all channels along with the number of members for each channel
 const getChannels = async () => {
   const query = `
@@ -57,4 +82,7 @@ module.exports = {
   createChannel,
   getChannels,
   getChannelById,
+  addUserToChannel,
+  getDefaultTeam,
+  addUserToTeam,
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import ChannelBox from './ChannelBox';
+import TeamBox from './TeamBox';
 import DirectMessagesBox from './DirectMessagesBox';
 import MeBox from './MeBox';
 import InvitePeopleBox from './InvitePeopleBox';
@@ -19,7 +19,7 @@ const Sidebar = () => {
       flexDirection: 'column',
       gap: '12px',
     }}>
-      <ChannelBox />
+      <TeamBox />
       <DirectMessagesBox />
       <MeBox />
       <InvitePeopleBox />

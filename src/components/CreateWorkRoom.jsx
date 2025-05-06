@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 
-const CreateChannel = ({ setError, fetchChannels }) => {
+const CreateWorkRoom = ({ setError, fetchChannels }) => {
   const [channelName, setChannelName] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('team');  // Default to 'team'
-  const [isPrivate, setIsPrivate] = useState(false);  // Default to public
+  const [category, setCategory] = useState('team');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setErrorState] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');  // Success message state
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const navigate = useNavigate(); 
 
   const handleCreateChannel = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorState('');
-    setSuccessMessage('');  // Clear any previous success messages
+    setSuccessMessage('');
 
-    const token = localStorage.getItem('token');  // Get token from localStorage
+    const token = localStorage.getItem('token');
     if (!token) {
       setErrorState('No token found. Please log in again.');
       setIsLoading(false);
@@ -39,15 +42,18 @@ const CreateChannel = ({ setError, fetchChannels }) => {
 
       if (response.ok) {
         const data = await response.json();
+
         setChannelName('');
         setDescription('');
         setCategory('team');
         setIsPrivate(false);
 
-        // Set success message
-        setSuccessMessage('Workroom successfully created!');
+        setSuccessMessage(`Workroom created successfully with default team "#general"`);
 
-        await fetchChannels();  // Re-fetch the channels list
+        await fetchChannels();
+
+        // Redirect to the default team's page
+        navigate(`/teams/${data.defaultTeamId}`);
       } else {
         const errorData = await response.json();
         setErrorState(errorData.error);
@@ -55,7 +61,7 @@ const CreateChannel = ({ setError, fetchChannels }) => {
     } catch (err) {
       setErrorState('Failed to create channel');
     } finally {
-      setIsLoading(false);  // Set loading state to false
+      setIsLoading(false);
     }
   };
 
@@ -126,13 +132,10 @@ const CreateChannel = ({ setError, fetchChannels }) => {
         </button>
       </form>
 
-      {/* Display error message if it exists */}
       {error && <p className="text-red-600 text-sm">{error}</p>}
-
-      {/* Display success message if it exists */}
       {successMessage && <p className="text-green-600 text-sm">{successMessage}</p>}
     </div>
   );
 };
 
-export default CreateChannel;
+export default CreateWorkRoom;

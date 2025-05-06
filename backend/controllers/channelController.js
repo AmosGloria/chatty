@@ -1,5 +1,6 @@
 // backend/controllers/channelController.js
-const { createChannel, getChannels } = require('../models/channelModel');
+const { createChannel, getChannels, getDefaultTeam, addUserToTeam } = require('../models/channelModel');
+const { createDefaultTeam } = require('../models/teamModel');
 
 const create = async (req, res) => {
   try {
@@ -12,10 +13,40 @@ const create = async (req, res) => {
 
     // Create the channel with description, category, and isPrivate
     const result = await createChannel(name, description, createdBy, category, isPrivate);
-    res.status(201).json({ message: 'Workroom successfully created', channelId: result.channelId });
+
+    // After channel (workroom) creation, create default #general team
+    await createDefaultTeam(result.channelId, createdBy);
+
+    res.status(201).json({ message: 'Workroom and default team created successfully', channelId: result.channelId });
   } catch (err) {
     console.error('Create channel error:', err.message);
     res.status(500).json({ error: 'Failed to create workroom' });
+  }
+};
+
+// Join Work Room and Auto-Join Default Team
+const joinChannel = async (req, res) => {
+  const { channelId, userId } = req.body;
+
+  try {
+    // Add user to the work room
+    await db.query(
+      'INSERT INTO channel_members (channel_id, user_id) VALUES (?, ?)',
+      [channelId, userId]
+    );
+
+    // Check if a default team exists for the work room
+    const defaultTeam = await getDefaultTeam(channelId);
+
+    // Add user to default team if found
+    if (defaultTeam) {
+      await addUserToTeam(userId, defaultTeam.id);
+    }
+
+    res.status(200).json({ message: 'User joined work room and default team (if available).' });
+  } catch (err) {
+    console.error('Join work room error:', err);
+    res.status(500).json({ error: 'Failed to join work room.' });
   }
 };
 
@@ -39,4 +70,4 @@ const getOne = async (req, res) => {
   }
 };
 
-module.exports = { create, getAll, getOne };
+module.exports = { create, joinChannel, getAll, getOne };

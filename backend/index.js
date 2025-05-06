@@ -10,6 +10,8 @@ const channelRoutes = require('./routes/channelRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const reactionRoutes = require('./routes/reactionRoutes'); 
 const channelMemberRoutes = require('./routes/channelMemberRoutes');
+const roleRoutes = require('./routes/roleRoutes');
+const teamRoutes = require('./routes/teamRoutes');
 
 
 const app = express();
@@ -59,6 +61,8 @@ app.use('/api/channels', channelRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reactions', reactionRoutes); //  Reaction routes
 app.use('/api/channel-members', channelMemberRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/teams', teamRoutes); 
 
 
 app.get("/", (req, res) => {
