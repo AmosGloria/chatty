@@ -69,7 +69,8 @@ const WorkroomPage = () => {
 >
 
       {/* Sidebar on the left */}
-      <Sidebar />
+      <Sidebar selectedChannelId={channelId} />
+
       <SearchButton/>
       <UsersMessage/>
 

@@ -1,32 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Handle team creation and displaying
-const TeamBox = () => {
+const TeamBox = ({ channelId }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [feedback, setFeedback] = useState('');
-  const [teams, setTeams] = useState([]); // To store the list of created teams
+  const [teams, setTeams] = useState([]);
 
-  const token = localStorage.getItem('token'); // Assuming the JWT token is stored in localStorage
-  const channelId = 1;  // Replace with the actual channel ID you want to fetch teams for
+  const token = localStorage.getItem('token');
 
-  // Fetch existing teams when the component mounts
   useEffect(() => {
+    if (!channelId || !token) return;
+
     const fetchTeams = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/teams/channel/${channelId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        // Log the response to check what we're getting
-        console.log('Fetched teams:', response.data);
-
-        // Set the teams data
-        setTeams(response.data); // Update the teams state with the fetched data
+        const response = await axios.get(
+          `http://localhost:5000/api/teams/channel/${channelId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setTeams(response.data || []);
       } catch (error) {
         console.error('Error fetching teams:', error);
         setFeedback('Failed to fetch teams.');
@@ -34,7 +29,7 @@ const TeamBox = () => {
     };
 
     fetchTeams();
-  }, [token, channelId]);  // Ensure this runs when token or channelId change
+  }, [channelId, token]);
 
   const handleCreateTeam = async () => {
     if (!teamName) {
@@ -43,24 +38,22 @@ const TeamBox = () => {
     }
 
     try {
-      // Send request to create a new team
       const response = await axios.post(
         'http://localhost:5000/api/teams',
         {
           name: teamName,
           isPrivate,
+          channelId, // Make sure your backend accepts this
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       if (response.status === 201) {
         setFeedback('Team created successfully!');
-        const newTeam = { name: response.data.teamName };  // Assuming the new team name is returned
-        setTeams((prevTeams) => [...prevTeams, newTeam]);  // Add the new team to the list
+        const newTeam = { name: response.data.teamName || teamName };
+        setTeams((prev) => [...prev, newTeam]);
       }
     } catch (error) {
       console.error('Error creating team:', error);
@@ -133,14 +126,12 @@ const TeamBox = () => {
         </div>
       )}
 
-      {/* Display the list of teams below the heading */}
       <div style={{ marginTop: '16px' }}>
-        <h3>Teams</h3>
         {teams.length > 0 ? (
           <ul>
             {teams.map((team, index) => (
               <li key={index} style={{ padding: '8px', borderBottom: '1px solid #ccc' }}>
-                <strong>{team.name}</strong> {/* Displaying only team name */}
+                <strong>{team.name}</strong>
               </li>
             ))}
           </ul>

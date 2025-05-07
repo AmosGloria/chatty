@@ -71,7 +71,7 @@ const getTeamsForChannel = async (req, res) => {
     const teams = await getTeamsByChannel(channelId);  // Fetch teams for a given channel
 
     // Log to check the teams fetched
-    console.log('Fetched teams:', teams);  // This should log an array of team objects
+    console.log('Fetched teams:', teams);
 
     const teamNames = teams.map(team => ({ name: team.name }));  // Only send team names
 

@@ -5,7 +5,7 @@ import MeBox from './MeBox';
 import InvitePeopleBox from './InvitePeopleBox';
 import ProfileBox from './ProfileBox';
 
-const Sidebar = () => {
+const Sidebar = ({ selectedChannelId }) => {
   return (
     <div style={{
       width: '400px',
@@ -19,7 +19,8 @@ const Sidebar = () => {
       flexDirection: 'column',
       gap: '12px',
     }}>
-      <TeamBox />
+      <TeamBox channelId={selectedChannelId} />
+
       <DirectMessagesBox />
       <MeBox />
       <InvitePeopleBox />
