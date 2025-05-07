@@ -16,21 +16,14 @@ const getChannelIdForAdmin = async (userId) => {
   }
 };
 
+// Create team
 const create = async (req, res) => {
-  const { name, description, isPrivate } = req.body;
+  const { name, description, isPrivate, channelId } = req.body;
   const userId = req.user.userId;
 
   try {
-    // Fetch the channel_id where the user is an Admin
-    const channelId = await getChannelIdForAdmin(userId);
-
-    if (!channelId) {
-      return res.status(400).json({ error: 'User is not an admin of any channel.' });
-    }
-
-    // Create the team in the fetched channel
     const result = await createTeam(name, description, userId, isPrivate, channelId);
-    res.status(201).json({ message: 'Team created', teamId: result.teamId });
+    res.status(201).json({ message: 'Team created successfully', teamId: result.teamId, teamName: name });
   } catch (err) {
     console.error('Team creation error:', err);
     res.status(500).json({ error: 'Team creation failed' });
@@ -64,21 +57,16 @@ const createSubteam = async (req, res) => {
   }
 };
 
+// Get teams for a specific channel
 const getTeamsForChannel = async (req, res) => {
   const { channelId } = req.params;
+
   try {
-    // Ensure the query fetches the correct teams for the given channelId
-    const teams = await getTeamsByChannel(channelId);  // Fetch teams for a given channel
-
-    // Log to check the teams fetched
-    console.log('Fetched teams:', teams);
-
-    const teamNames = teams.map(team => ({ name: team.name }));  // Only send team names
-
-    res.status(200).json(teamNames);  // Return only the names of teams
-  } catch (error) {
-    console.error('Error fetching teams for channel:', error);
-    res.status(500).json({ error: 'Failed to fetch teams for channel' });
+    const teams = await getTeamsByChannel(channelId);
+    res.status(200).json(teams);  // Return the teams data
+  } catch (err) {
+    console.error('Error fetching teams:', err);
+    res.status(500).json({ error: 'Failed to fetch teams for the channel' });
   }
 };
 

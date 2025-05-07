@@ -14,22 +14,12 @@ const createTeam = async (name, description, createdBy, isPrivate, channel_id, i
   try {
     await conn.beginTransaction();
 
-    // If channel_id is not passed, fetch it based on the user's admin role
-    if (!channel_id) {
-      channel_id = await getChannelIdForAdmin(createdBy);
-      if (!channel_id) {
-        throw new Error('User is not an admin of any channel.');
-      }
-    }
-
-    // Insert team into the database
     const [teamRes] = await conn.query(
       'INSERT INTO teams (channel_id, name, description, created_by, is_private, is_default) VALUES (?, ?, ?, ?, ?, ?)',
       [channel_id, name, description, createdBy, isPrivate, is_Default]
     );
     const teamId = teamRes.insertId;
 
-    // Make the creator an Admin
     await conn.query(
       'INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?)',
       [teamId, createdBy, 'Admin']
@@ -44,6 +34,7 @@ const createTeam = async (name, description, createdBy, isPrivate, channel_id, i
     conn.release();
   }
 };
+
 
 // Can a user create a team
 const canUserCreateTeam = async (userId, teamId) => {
