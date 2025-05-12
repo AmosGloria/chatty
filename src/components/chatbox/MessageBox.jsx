@@ -1,9 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import EmojiPicker from 'emoji-picker-react';
+import axios from 'axios';
+import { io } from 'socket.io-client';
+import { jwtDecode } from 'jwt-decode';
 
-const MessageBox = ({ onSend, user = { name: 'John Doe', profileImage: '' } }) => {
+// Initialize socket connection
+const socket = io('http://localhost:5000', { withCredentials: true });
+
+// Decode JWT from localStorage
+const getUserIdFromToken = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.userId;
+  } catch (error) {
+    console.error("Failed to decode token:", error);
+    return null;
+  }
+};
+
+const MessageBox = ({ channelId, user = { name: 'John Doe', profileImage: '' } }) => {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [feedback, setFeedback] = useState('');
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -13,10 +34,36 @@ const MessageBox = ({ onSend, user = { name: 'John Doe', profileImage: '' } }) =
     }
   }, [message]);
 
-  const handleSend = () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
-      onSend(message);
-      setMessage('');
+      try {
+        const userId = getUserIdFromToken(); //real user ID
+        if (!userId) {
+          setFeedback('User not authenticated.');
+          return;
+        }
+
+        const data = {
+          text: message,
+          userId,
+          channelId,
+          conversationId: null,
+        };
+
+        await axios.post('http://localhost:5000/api/messages', data, {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        socket.emit('sendMessage', { channelId, message });
+
+        setMessage('');
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setFeedback('Failed to send message');
+      }
     }
   };
 
@@ -36,12 +83,13 @@ const MessageBox = ({ onSend, user = { name: 'John Doe', profileImage: '' } }) =
       style={{
         display: 'flex',
         alignItems: 'flex-start',
-        position: 'absolute',
-        top: '400px',
+        position: 'fixed',
+        bottom: '20px',
         left: '450px',
+        zIndex: 1000,
       }}
     >
-      {/* Profile Picture (outside message box) */}
+      {/* Profile Picture */}
       <div
         style={{
           width: '40px',
@@ -90,6 +138,7 @@ const MessageBox = ({ onSend, user = { name: 'John Doe', profileImage: '' } }) =
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
+          position: 'relative',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -110,16 +159,6 @@ const MessageBox = ({ onSend, user = { name: 'John Doe', profileImage: '' } }) =
             rows={1}
           />
 
-          {/* Paperclip icon */}
-          <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} title="Attach">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              strokeWidth={1.5} stroke="#000" width="24" height="24">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
-            </svg>
-          </button>
-
-          {/* Emoji picker toggle */}
           <button
             onClick={() => setShowEmojiPicker((prev) => !prev)}
             style={{ fontSize: '18px', background: 'none', border: 'none', cursor: 'pointer' }}
@@ -128,9 +167,8 @@ const MessageBox = ({ onSend, user = { name: 'John Doe', profileImage: '' } }) =
             😊
           </button>
 
-          {/* Send button */}
           <button
-            onClick={handleSend}
+            onClick={handleSendMessage}
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
             title="Send"
           >
@@ -148,6 +186,9 @@ const MessageBox = ({ onSend, user = { name: 'John Doe', profileImage: '' } }) =
           </div>
         )}
       </div>
+
+      {/* Feedback */}
+      {feedback && <p style={{ marginTop: '12px', color: '#FF0000' }}>{feedback}</p>}
     </div>
   );
 };

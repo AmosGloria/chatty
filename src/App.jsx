@@ -6,7 +6,7 @@ import SignupForm from './components/SignupForm';
 import HomePage from './components/HomePage';
 import CreateWorkRoom from './components/CreateWorkRoom';
 import GoogleSuccess from './components/GoogleSuccess';
-import WorkroomPage from './components/chatbox/WorkRoomPage';
+import WorkroomLayout from './components/chatbox/WorkroomLayout';
 
 function App() {
   const [token, setToken] = useState(null);
@@ -19,7 +19,8 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/create-workroom" element={<CreateWorkRoom />} />
         <Route path="/google-success" element={<GoogleSuccess setToken={setToken} />} />
-        <Route path="/workroom/:channelId" element={<WorkroomPage />} />
+       <Route path="/workroom/:channelId" element={<WorkroomLayout />} />
+
       </Routes>
     </Router>
   );

@@ -130,7 +130,7 @@ const TeamBox = ({ channelId }) => {
         {teams.length > 0 ? (
           <ul>
             {teams.map((team, index) => (
-              <li key={index} style={{ padding: '8px', borderBottom: '1px solid #ccc' }}>
+              <li key={index} style={{ padding: '8px'}}>
                 <strong>{team.name}</strong>
               </li>
             ))}

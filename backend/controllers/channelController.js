@@ -14,13 +14,32 @@ const create = async (req, res) => {
     // Create the channel with description, category, and isPrivate
     const result = await createChannel(name, description, createdBy, category, isPrivate);
 
-    // After channel (workroom) creation, create default #general team
+    // Add the creator to channel_members table (role can be set as 'Admin' or similar)
+    await addCreatorToChannelMembers(result.channelId, createdBy);
+
+    // After channel creation, create the default #general team
     await createDefaultTeam(result.channelId, createdBy);
 
     res.status(201).json({ message: 'Workroom and default team created successfully', channelId: result.channelId });
   } catch (err) {
     console.error('Create channel error:', err.message);
     res.status(500).json({ error: 'Failed to create workroom' });
+  }
+};
+
+// Add creator to the channel_members table
+const addCreatorToChannelMembers = async (channelId, createdBy) => {
+  try {
+    // Insert the creator as a member of the channel with role (you can set 'Admin' or any default role)
+    const role = 'Admin'; // This could be 'Admin', 'Member', etc.
+    await db.query(
+      'INSERT INTO channel_members (channel_id, user_id, role) VALUES (?, ?, ?)',
+      [channelId, createdBy, role]
+    );
+    console.log(`Creator (user ${createdBy}) added to channel ${channelId}`);
+  } catch (error) {
+    console.error('Error adding creator to channel members:', error.message);
+    throw new Error('Failed to add creator as member');
   }
 };
 
@@ -70,4 +89,4 @@ const getOne = async (req, res) => {
   }
 };
 
-module.exports = { create, joinChannel, getAll, getOne };
+module.exports = { create, addCreatorToChannelMembers, joinChannel, getAll, getOne };

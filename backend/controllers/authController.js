@@ -79,6 +79,42 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Login with Google ID Token (from Postman or mobile)
+const loginWithGoogleToken = async (req, res) => {
+  const { id_token } = req.body;
+  if (!id_token) return res.status(400).json({ error: 'ID token is required' });
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    // Check if user exists in DB
+    let user = await findUserByEmail(email);
+
+    if (!user) {
+      // Register new user if not found
+      await registerUser(name, email, null); // null password if Google-only
+      user = await findUserByEmail(email);
+    }
+
+    // Issue your own JWT
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, user: { id: user.id, name: user.username, email, picture } });
+  } catch (error) {
+    console.error('Google token login error:', error);
+    res.status(401).json({ error: 'Invalid Google token' });
+  }
+};
+
+
 //  Export everything
 module.exports = {
   welcome,
@@ -87,4 +123,5 @@ module.exports = {
   getProfile,
   getUserById,
   updateProfile,
+  loginWithGoogleToken,
 };

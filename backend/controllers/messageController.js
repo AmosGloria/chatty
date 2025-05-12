@@ -1,22 +1,56 @@
 const db = require('../connectDatabase');
-const { getMessagesByChannelOrConversation, getThreadReplies } = require('../models/messageModel');
+const { getMessagesByChannelOrConversation, getThreadReplies, insertMessage } = require('../models/messageModel');
 
 // Send a message to a channel or as a direct message
 const sendMessage = async (text, userId, channelId, conversationId) => {
-  // Check if user is a member of the channel
-  const [result] = await db.query(
-    'SELECT * FROM channel_members WHERE channel_id = ? AND user_id = ?',
-    [channelId, userId]
+  try {
+    // Check if the channel exists
+    const [channelCheck] = await db.query(
+      'SELECT * FROM channels WHERE id = ?',
+      [channelId]
+    );
+    if (channelCheck.length === 0) {
+      throw new Error('Channel does not exist');
+    }
+
+    // Check if the user is a member of the channel
+    const [result] = await db.query(
+      'SELECT * FROM channel_members WHERE channel_id = ? AND user_id = ?',
+      [channelId, userId]
+    );
+    console.log('Channel member check result:', result);
+
+    if (result.length === 0) {
+      // If the user is not a member, check if they are the creator
+      console.log('User is not a member, checking if they are the creator...');
+      const [creatorCheck] = await db.query(
+        'SELECT * FROM channels WHERE id = ? AND created_by = ?',
+        [channelId, userId]
+      );
+      console.log('Creator check result:', creatorCheck);
+
+      // If the user is the creator, automatically consider them a member
+     if (creatorCheck.length > 0) {
+  console.log('User is the creator, auto-adding them to channel_members...');
+  await db.query(
+    'INSERT INTO channel_members (channel_id, user_id, role, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+    [channelId, userId, 'Admin']
   );
+} else {
+  throw new Error('User is not a member of this channel');
+}
+    }
 
-  if (result.length === 0) {
-    throw new Error('User is not a member of this channel');
+    // Proceed with sending the message to the channel
+    const query = 'INSERT INTO messages (text, user_id, channel_id, conversation_id) VALUES (?, ?, ?, ?)';
+    const [messageResult] = await db.query(query, [text, userId, channelId, conversationId]);
+
+    return { success: true, message: 'Message sent successfully', messageId: messageResult.insertId };
+
+  } catch (error) {
+    console.error('Error in sendMessage:', error.message);
+    throw new Error('Failed to send message');
   }
-
-  // Proceed with sending the message to the channel
-  const query = 'INSERT INTO messages (text, user_id, channel_id, conversation_id) VALUES (?, ?, ?, ?)';
-  const [messageResult] = await db.query(query, [text, userId, channelId, conversationId]);
-  return messageResult;
 };
 
 // Get messages from a channel or direct messages from a conversation
@@ -49,8 +83,6 @@ const replyToMessage = async (req, res) => {
     res.status(500).json({ error: 'Failed to send reply' });
   }
 };
-
-
 
 const getReplies = async (req, res) => {
   const thread_id = req.params.id;

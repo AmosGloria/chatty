@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
-import Sidebar from './SideBar';
-import UsersMessage from './UsersMessage';
+import FetchMessage from './FetchMessage';
 import MessageBox from './MessageBox';
 import SearchButton from './SearchButton';
 
@@ -13,37 +12,10 @@ const WorkroomPage = () => {
   const { channelId } = useParams();
   const [channel, setChannel] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [user, setUser] = useState({ username: 'You', profileImage: '/images/gloria.jpg' }); // Temporary — replace with real user auth
+  const [user, setUser] = useState({ username: 'You', profileImage: '/images/gloria.jpg' }); 
 
   useEffect(() => {
-    if (!channelId) return; // Prevent calls with undefined ID
-
-    // const fetchChannelDetails = async () => {
-    //   try {
-    //     const token = localStorage.getItem('token');
-    //     const res = await axios.get(`http://localhost:5000/api/channels/${channelId}`, {
-    //       headers: { Authorization: `Bearer ${token}` },
-    //     });
-    //     setChannel(res.data);
-    //   } catch (err) {
-    //     console.error('Failed to fetch channel details:', err);
-    //   }
-    // };
-
-    // const fetchMessages = async () => {
-    //   try {
-    //     const token = localStorage.getItem('token');
-    //     const res = await axios.get(`http://localhost:5000/api/messages/${channelId}`, {
-    //       headers: { Authorization: `Bearer ${token}` },
-    //     });
-    //     setMessages(res.data);
-    //   } catch (err) {
-    //     console.error('Failed to fetch messages:', err);
-    //   }
-    // };
-
-    // fetchChannelDetails();
-    // fetchMessages();
+    if (!channelId) return;
 
     socket.emit('joinChannel', channelId);
 
@@ -59,43 +31,51 @@ const WorkroomPage = () => {
 
   return (
     <div
-  style={{
-    width: '1440px',
-    height: '1198px',
-    top: '-599px',
-    left: '793px',
-    background: '#F8F8FF',
-  }}
->
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#F8F8FF',
+      }}
+    >
+      {/* Optional search and user section */}
+      <div style={{ padding: '16px' }}>
+        <SearchButton />
+        <FetchMessage />
+      </div>
 
-      {/* Sidebar on the left */}
-      <Sidebar selectedChannelId={channelId} />
+      {/* Main content with scrollable area */}
+      <div
+        style={{
+          flexGrow: 1,
+          padding: '0 24px',
+          overflowY: 'auto',
+        }}
+      >
+        <div style={{ paddingBottom: '140px' /* reserve space for fixed MessageBox */ }}>
+          <h2 className="text-2xl font-bold mb-2">{channel?.name}</h2>
+          <p className="text-gray-600 mb-4">{channel?.description}</p>
 
-      <SearchButton/>
-      <UsersMessage/>
-
-      {/* Main chat content on the right */}
-      <div className="flex-grow p-6">
-        <h2 className="text-2xl font-bold mb-2">{channel?.name}</h2>
-        <p className="text-gray-600 mb-4">{channel?.description}</p>
-
-        <div className="flex gap-2">
-          <MessageBox
-            user={user}
-            channelId={channelId}
-            onSend={(text) => {
-              socket.emit('sendMessage', {
-                channelId,
-                message: {
-                  content: text,
-                  username: user.username,
-                  profileImage: user.profileImage,
-                },
-              });
-            }}
-          />
+          {/* Messages could be mapped here if needed */}
         </div>
       </div>
+
+      {/* Fixed MessageBox at bottom */}
+      <MessageBox
+        user={user}
+        channelId={channelId}
+        onSend={(text) => {
+          socket.emit('sendMessage', {
+            channelId,
+            message: {
+              content: text,
+              username: user.username,
+              profileImage: user.profileImage,
+            },
+          });
+        }}
+      />
     </div>
   );
 };
