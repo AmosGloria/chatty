@@ -8,7 +8,7 @@ require('./passportConfig');
 const authRoutes = require('./routes/authRoutes');
 const channelRoutes = require('./routes/channelRoutes');
 const messageRoutes = require('./routes/messageRoutes');
-const reactionRoutes = require('./routes/reactionRoutes'); 
+const reactionRoutes = require('./routes/reactionRoutes');
 const channelMemberRoutes = require('./routes/channelMemberRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const teamRoutes = require('./routes/teamRoutes');
@@ -16,7 +16,7 @@ const teamRoutes = require('./routes/teamRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Apply CORS
+// Apply CORS
 const corsOptions = {
   origin: 'http://localhost:5173', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -36,7 +36,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session()); // needed for session-based auth
 
-// ✅ Create HTTP server & Socket.IO server
+// Create HTTP server & Socket.IO server
 const http = require('http');
 const { Server } = require('socket.io');
 const server = http.createServer(app);
@@ -48,7 +48,7 @@ const io = new Server(server, {
   }
 });
 
-// ✅ Inject `io` into every Express request
+// Inject `io` into every Express request
 app.use((req, res, next) => {
   req.io = io; // Making io available in all request handlers
   next();
@@ -67,7 +67,7 @@ app.get('/', (req, res) => {
   res.json({ message: "Welcome to Chaty backend!" });
 });
 
-// ✅ Socket.IO Events
+// Socket.IO Events
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 

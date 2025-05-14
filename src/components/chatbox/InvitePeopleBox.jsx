@@ -1,18 +1,123 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const InvitePeopleBox = () => {
+const InvitePeopleBox = ({ channelId, token }) => {
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('Member');
+  const [reason, setReason] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const handleSendInvite = async () => {
+    if (!email) {
+      setStatusMessage('Please enter an email address');
+      return;
+    }
+
+    try {
+      // Send POST request to invite user by email
+      const response = await axios.post(
+        `http://localhost:5000/api/channel-members/${channelId}/invite`,
+        { email, role, reason },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setStatusMessage(response.data.message || 'Invitation sent successfully');
+      setEmail('');
+      setReason('');
+      setRole('Member');
+    } catch (error) {
+      console.error('Error sending invitation:', error.response?.data || error.message);
+      setStatusMessage('Failed to send invitation');
+    }
+  };
+
   return (
-    <div style={{
-      width: '324px',
-      height: '76px',
-      borderRadius: '6px',
-      border: '0.5px solid #DDDDDD',
-      background: '#F8FAFA',
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 16px',
-    }}>
-      <span style={{ fontWeight: '500' }}>Invite People</span>
+    <div
+      style={{
+        width: '340px',
+        borderRadius: '6px',
+        border: '0.5px solid #DDDDDD',
+        background: '#F8FAFA',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      }}
+    >
+      <span style={{ fontWeight: '600', fontSize: '16px' }}>Invite People</span>
+
+      <input
+        type="email"
+        placeholder="Email address"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={{
+          padding: '8px',
+          borderRadius: '4px',
+          border: '1px solid #ccc',
+          fontSize: '14px',
+        }}
+      />
+
+      <select
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+        style={{
+          padding: '8px',
+          borderRadius: '4px',
+          border: '1px solid #ccc',
+          fontSize: '14px',
+        }}
+      >
+        <option value="Member">Member</option>
+        <option value="Guest">Guest</option>
+      </select>
+
+      <textarea
+        placeholder="Reason for invitation (optional)"
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        rows={3}
+        style={{
+          padding: '8px',
+          borderRadius: '4px',
+          border: '1px solid #ccc',
+          fontSize: '14px',
+          resize: 'vertical',
+        }}
+      />
+
+      <button
+        onClick={handleSendInvite}
+        style={{
+          padding: '10px',
+          borderRadius: '4px',
+          backgroundColor: '#007bff',
+          color: 'white',
+          fontWeight: '600',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        Send Request
+      </button>
+
+      {statusMessage && (
+        <p
+          style={{
+            marginTop: '8px',
+            fontSize: '14px',
+            color: statusMessage.includes('Failed') ? 'red' : 'green',
+            textAlign: 'center',
+          }}
+        >
+          {statusMessage}
+        </p>
+      )}
     </div>
   );
 };

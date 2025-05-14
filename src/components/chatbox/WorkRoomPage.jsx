@@ -42,7 +42,7 @@ const WorkroomPage = () => {
       {/* Optional search and user section */}
       <div style={{ padding: '16px' }}>
         <SearchButton />
-        <FetchMessage />
+         <FetchMessage channelId={channelId} user={user} messages={messages} />
       </div>
 
       {/* Main content with scrollable area */}
