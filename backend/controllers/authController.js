@@ -1,4 +1,7 @@
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
+
 const {
   registerUser,
   findUserByEmail,
@@ -38,6 +41,26 @@ const login = async (req, res) => {
   } catch (err) {
     res.status(400).send(err.message);
   }
+};
+
+const uploadProfileImage = (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const imageUrl = `/uploads/${req.file.filename}`; // adjust if you serve static files
+
+  // Update the user's profile_picture in DB here using your updateUserProfile method
+  const userId = req.user.userId;
+
+  updateUserProfile(userId, { profile_picture: imageUrl })
+    .then(() => {
+      res.status(200).json({ profile_picture: imageUrl });
+    })
+    .catch((err) => {
+      console.error('Error updating profile image:', err);
+      res.status(500).json({ error: 'Failed to update profile image' });
+    });
 };
 
 //  Get Logged-in User Profile
@@ -120,6 +143,7 @@ module.exports = {
   welcome,
   signup,
   login,
+  uploadProfileImage,
   getProfile,
   getUserById,
   updateProfile,

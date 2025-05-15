@@ -2,9 +2,12 @@
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const passport = require('passport');
-const { signup, login, getProfile, getUserById, updateProfile, loginWithGoogleToken } = require('../controllers/authController');
+const { signup, login, getProfile, getUserById, updateProfile, loginWithGoogleToken, uploadProfileImage } = require('../controllers/authController');
 const requireAuth = require('../middlewares/authMiddleware'); 
 const router = express.Router();
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // files saved in backend/uploads folder
+
 
 // Signup Route (Email/Password)
 router.post('/signup', signup);
@@ -34,5 +37,6 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
 router.get('/profile', requireAuth, getProfile);
 router.get('/user/:id', getUserById);
 router.put('/profile', requireAuth, updateProfile);
+router.post('/profile/upload-image', requireAuth, upload.single('profile_picture'), uploadProfileImage);
 
 module.exports = router;

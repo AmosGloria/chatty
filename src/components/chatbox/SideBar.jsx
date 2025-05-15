@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import TeamBox from './TeamBox';
 import DirectMessagesBox from './DirectMessagesBox';
-import MeBox from './MeBox';
+import ThreadsBox from './ThreadsBox';
 import InvitePeopleBox from './InvitePeopleBox';
 import ProfileBox from './ProfileBox';
 
@@ -62,7 +62,7 @@ const Sidebar = ({ selectedChannelId }) => {
       </div>
 
       <DirectMessagesBox />
-      <MeBox />
+      <ThreadsBox />
       <InvitePeopleBox />
       <ProfileBox initialUser={{ name: 'Jane Smith', status: 'Available' }} />
     </div>

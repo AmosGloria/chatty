@@ -6,11 +6,12 @@ const DirectMessagesBox = () => {
       width: '324px',
       height: '76px',
       borderRadius: '6px',
-      border: '2px solid #BFC0CB',
+      border: '0.5px solid #DDDDDD',
       background: '#F8FAFA',
       display: 'flex',
       alignItems: 'center',
       padding: '0 16px',
+       marginBottom: '10px',
     }}>
       <div style={{
         width: '30px',

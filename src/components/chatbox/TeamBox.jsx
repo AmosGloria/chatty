@@ -7,6 +7,7 @@ const TeamBox = ({ channelId }) => {
   const [isPrivate, setIsPrivate] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [teams, setTeams] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState('');
 
   const token = localStorage.getItem('token');
 
@@ -22,6 +23,9 @@ const TeamBox = ({ channelId }) => {
           }
         );
         setTeams(response.data || []);
+        if (response.data && response.data.length > 0) {
+          setSelectedTeam(response.data[0].name); // default select first team
+        }
       } catch (error) {
         console.error('Error fetching teams:', error);
         setFeedback('Failed to fetch teams.');
@@ -43,7 +47,7 @@ const TeamBox = ({ channelId }) => {
         {
           name: teamName,
           isPrivate,
-          channelId, // Make sure your backend accepts this
+          channelId,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -54,6 +58,9 @@ const TeamBox = ({ channelId }) => {
         setFeedback('Team created successfully!');
         const newTeam = { name: response.data.teamName || teamName };
         setTeams((prev) => [...prev, newTeam]);
+        setSelectedTeam(newTeam.name);
+        setTeamName('');
+        setIsPrivate(false);
       }
     } catch (error) {
       console.error('Error creating team:', error);
@@ -66,14 +73,19 @@ const TeamBox = ({ channelId }) => {
       style={{
         width: '324px',
         borderRadius: '6px',
-        border: '2px solid #BFC0CB',
+        border: '0.5px solid #DDDDDD',
         background: '#F8FAFA',
         padding: '16px',
-        marginBottom: '16px',
+        marginBottom: '6px',
       }}
     >
       <div
-        style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: '12px' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer',
+          marginBottom: '12px',
+        }}
         onClick={() => setShowOptions(!showOptions)}
       >
         <div
@@ -95,13 +107,20 @@ const TeamBox = ({ channelId }) => {
             placeholder="Team Name"
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
-            style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+            style={{
+              width: '100%',
+              padding: '8px',
+              marginBottom: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+            }}
           />
           <label>
             <input
               type="checkbox"
               checked={isPrivate}
               onChange={(e) => setIsPrivate(e.target.checked)}
+              style={{ marginRight: '6px' }}
             />
             Private Team
           </label>
@@ -122,19 +141,31 @@ const TeamBox = ({ channelId }) => {
             Create Team
           </button>
 
-          {feedback && <p style={{ marginTop: '12px', color: '#FF0000' }}>{feedback}</p>}
+          {feedback && (
+            <p style={{ marginTop: '12px', color: '#FF0000' }}>{feedback}</p>
+          )}
         </div>
       )}
 
       <div style={{ marginTop: '16px' }}>
         {teams.length > 0 ? (
-          <ul>
+          <select
+            value={selectedTeam}
+            onChange={(e) => setSelectedTeam(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+              fontSize: '14px',
+            }}
+          >
             {teams.map((team, index) => (
-              <li key={index} style={{ padding: '8px'}}>
-                <strong>{team.name}</strong>
-              </li>
+              <option key={index} value={team.name}>
+                {team.name}
+              </option>
             ))}
-          </ul>
+          </select>
         ) : (
           <p>No teams available in this channel.</p>
         )}

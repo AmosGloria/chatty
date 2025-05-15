@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path'); 
 const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
@@ -62,6 +63,8 @@ app.use('/api/reactions', reactionRoutes);
 app.use('/api/channel-members', channelMemberRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 app.get('/', (req, res) => {
   res.json({ message: "Welcome to Chaty backend!" });

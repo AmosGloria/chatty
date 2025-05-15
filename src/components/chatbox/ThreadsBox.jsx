@@ -11,8 +11,9 @@ const MeBox = () => {
       display: 'flex',
       alignItems: 'center',
       padding: '0 16px',
+       marginBottom: '10px',
     }}>
-      <span style={{ fontWeight: '500' }}>Me</span>
+      <span style={{ fontWeight: '500' }}>Threads</span>
     </div>
   );
 };

@@ -66,6 +66,7 @@ const FetchMessage = ({ channelId, user }) => {
               alignSelf: msg.user_id === user.id ? 'flex-end' : 'flex-start',
               flexDirection: msg.user_id === user.id ? 'row-reverse' : 'row',
               maxWidth: '90%',
+              marginBottom:'16px',
             }}
           >
             <div
