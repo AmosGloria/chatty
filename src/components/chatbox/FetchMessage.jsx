@@ -98,7 +98,7 @@ const FetchMessage = ({ channelId, user }) => {
                     color: '#555',
                   }}
                 >
-                  {msg.user_name?.[0]?.toUpperCase() || 'U'}
+                  
                 </span>
               )}
             </div>
