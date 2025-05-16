@@ -125,12 +125,44 @@ const getReplies = async (req, res) => {
 // Delete a message by ID (Admins only)
 const deleteMessage = async (req, res) => {
   const messageId = req.params.id;
+  const userId = req.user.id; // Authenticated user ID
 
   try {
-    const [result] = await db.query(
-      'DELETE FROM messages WHERE id = ?',
+    // Fetch the message to get sender and channel
+    const [messages] = await db.query(
+      'SELECT user_id, channel_id FROM messages WHERE id = ?',
       [messageId]
     );
+
+    if (messages.length === 0) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    const message = messages[0];
+
+    // If user is the message sender, allow deletion
+    if (message.user_id === userId) {
+      // authorized
+    } else {
+      // Check if user is channel admin
+      const [admins] = await db.query(
+        'SELECT * FROM channel_members WHERE channel_id = ? AND user_id = ? AND role = ?',
+        [message.channel_id, userId, 'Admin']
+      );
+
+      // Check if user is channel creator
+      const [creators] = await db.query(
+        'SELECT * FROM channels WHERE id = ? AND created_by = ?',
+        [message.channel_id, userId]
+      );
+
+      if (admins.length === 0 && creators.length === 0) {
+        return res.status(403).json({ error: 'You do not have permission to delete this message' });
+      }
+    }
+
+    // Authorized, delete the message
+    const [result] = await db.query('DELETE FROM messages WHERE id = ?', [messageId]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Message not found or already deleted' });
@@ -138,7 +170,7 @@ const deleteMessage = async (req, res) => {
 
     res.status(200).json({ message: 'Message deleted successfully' });
   } catch (err) {
-    console.error(' Error deleting message:', err.message);
+    console.error('Error deleting message:', err.message);
     res.status(500).json({ error: 'Failed to delete message' });
   }
 };
