@@ -5,6 +5,7 @@ import axios from 'axios';
 import FetchMessage from './FetchMessage';
 import MessageBox from './MessageBox';
 import SearchButton from './SearchButton';
+import Logout from './Logout';
 
 const socket = io('http://localhost:5000'); // Backend URL
 
@@ -12,7 +13,7 @@ const WorkroomPage = () => {
   const { channelId } = useParams();
   const [channel, setChannel] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [user, setUser] = useState({ username: 'You', profileImage: '/images/gloria.jpg' }); 
+  const [user, setUser] = useState({ username: 'You', profileImage: '/images/gloria.jpg' });
 
   useEffect(() => {
     if (!channelId) return;
@@ -32,17 +33,33 @@ const WorkroomPage = () => {
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
         height: '100vh',
         overflow: 'hidden',
         background: '#F8F8FF',
       }}
     >
-      {/* Optional search and user section */}
-      <div style={{ padding: '16px' }}>
+      {/* Top-right corner: Search & Logout */}
+      <div
+        style={{
+          display:'flex',
+          flexDirection:'row',
+          position: 'fixed',
+          top: '16px',
+          right: '24px',
+          zIndex: 1000,
+          backgroundColor: '#F8F8FF', // optional for visibility
+          padding: '8px 12px',
+          borderRadius: '4px',
+          gap:'10px',
+
+        }}
+      >
         <SearchButton />
-         <FetchMessage channelId={channelId} user={user} messages={messages} />
+        <Logout />
+      </div>
+
+      <div style={{ padding: '16px' }}>
+        <FetchMessage channelId={channelId} user={user} messages={messages} />
       </div>
 
       {/* Main content with scrollable area */}
@@ -53,11 +70,9 @@ const WorkroomPage = () => {
           overflowY: 'auto',
         }}
       >
-        <div style={{ paddingBottom: '140px' /* reserve space for fixed MessageBox */ }}>
+        <div style={{ paddingBottom: '140px' }}>
           <h2 className="text-2xl font-bold mb-2">{channel?.name}</h2>
           <p className="text-gray-600 mb-4">{channel?.description}</p>
-
-          {/* Messages could be mapped here if needed */}
         </div>
       </div>
 

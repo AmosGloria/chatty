@@ -1,29 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import { jwtDecode } from 'jwt-decode';
+import { UserContext } from '../../UserContext';
 
-// Initialize socket connection
 const socket = io('http://localhost:5000', { withCredentials: true });
 
-// Decode JWT from localStorage
 const getUserIdFromToken = () => {
   const token = localStorage.getItem("token");
   if (!token) return null;
   try {
-    const decoded = jwtDecode(token);
-    return decoded.userId;
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload).userId;
   } catch (error) {
     console.error("Failed to decode token:", error);
     return null;
   }
 };
 
-const MessageBox = ({ channelId, user = { name: 'John Doe', profileImage: '' } }) => {
+const MessageBox = ({ channelId }) => {
+  const { user } = useContext(UserContext);
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [messages, setMessages] = useState([]);
   const [feedback, setFeedback] = useState('');
   const textareaRef = useRef(null);
 
@@ -35,35 +40,43 @@ const MessageBox = ({ channelId, user = { name: 'John Doe', profileImage: '' } }
   }, [message]);
 
   const handleSendMessage = async () => {
-    if (message.trim()) {
-      try {
-        const userId = getUserIdFromToken(); //real user ID
-        if (!userId) {
-          setFeedback('User not authenticated.');
-          return;
-        }
+    if (!message.trim()) return;
 
-        const data = {
-          text: message,
-          userId,
-          channelId,
-          conversationId: null,
-        };
+    const userId = getUserIdFromToken();
+    if (!userId) {
+      setFeedback('User not authenticated.');
+      return;
+    }
 
-        await axios.post('http://localhost:5000/api/messages', data, {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+    const data = {
+      text: message,
+      userId,
+      channelId,
+      conversationId: null,
+    };
 
-        socket.emit('sendMessage', { channelId, message });
+    try {
+      await axios.post('http://localhost:5000/api/messages', data, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
-        setMessage('');
-      } catch (error) {
-        console.error('Error sending message:', error);
-        setFeedback('Failed to send message');
-      }
+      socket.emit('sendMessage', {
+        channelId,
+        message: {
+          content: message,
+          username: user.name,
+          profileImage: user.profileImage || '',
+        },
+      });
+
+      setMessage('');
+      setFeedback('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setFeedback('Failed to send message');
     }
   };
 
@@ -72,6 +85,7 @@ const MessageBox = ({ channelId, user = { name: 'John Doe', profileImage: '' } }
     const cursorPos = textareaRef.current.selectionStart;
     const newText = message.slice(0, cursorPos) + emoji + message.slice(cursorPos);
     setMessage(newText);
+
     setTimeout(() => {
       textareaRef.current.focus();
       textareaRef.current.selectionEnd = cursorPos + emoji.length;
@@ -129,7 +143,7 @@ const MessageBox = ({ channelId, user = { name: 'John Doe', profileImage: '' } }
       <div
         style={{
           width: '608px',
-          height: '96px',
+          minHeight: '96px',
           borderRadius: '10px',
           border: '1px solid #DDDDDD',
           background: '#FFFFFF',

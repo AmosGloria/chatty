@@ -1,60 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
+import { UserContext } from '../../UserContext';
 
 const ProfileBox = () => {
-  const [user, setUser] = useState({
-    id: null,
-    name: '',
-    status: '',
-    profile_picture: null,
-  });
+  const { user, setUser } = useContext(UserContext);
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-
-  const token = localStorage.getItem('token');
   const wrapperRef = useRef(null);
-
-  // Backend base URL - adjust if needed
+  const token = localStorage.getItem('token');
   const backendUrl = 'http://localhost:5000';
 
-  // Fetch current profile info on mount
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get(`${backendUrl}/api/auth/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser({
-          id: res.data.id,
-          name: res.data.username || '',
-          status: res.data.status || '',
-          profile_picture: res.data.profile_picture || null,
-        });
-      } catch (err) {
-        console.error('Failed to fetch profile:', err);
-      }
-    };
-    if (token) fetchProfile();
-  }, [token]);
-
-  // Close edit mode if clicking outside the component
   useEffect(() => {
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsEditing(false);
-        setSelectedFile(null); // discard any selected but not saved image
+        setSelectedFile(null);
         setFeedback('');
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [wrapperRef]);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  // Handle image file selection
   const handleImageUpload = (e) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -62,19 +31,16 @@ const ProfileBox = () => {
     }
   };
 
-  // Remove profile picture
   const handleImageRemove = () => {
-    setUser((prev) => ({ ...prev, profile_picture: null }));
+    setUser((prev) => ({ ...prev, profileImage: '' }));
     setSelectedFile(null);
   };
 
-  // Handle text input changes for name and status
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Upload image file to backend
   const uploadImage = async (file) => {
     const formData = new FormData();
     formData.append('profile_picture', file);
@@ -84,19 +50,21 @@ const ProfileBox = () => {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return res.data.profile_picture; // expect URL or filename returned
+    return res.data.profile_picture;
   };
 
-  // Submit profile updates
   const handleSubmit = async () => {
     setLoading(true);
     setFeedback('');
-
     try {
-      let profile_picture = user.profile_picture;
+      let profile_picture = user.profileImage;
 
       if (selectedFile) {
         profile_picture = await uploadImage(selectedFile);
+        // Compose full URL if backend returns relative path
+        profile_picture = profile_picture.startsWith('http')
+          ? profile_picture
+          : `${backendUrl}${profile_picture}`;
       }
 
       const updatePayload = {
@@ -109,7 +77,13 @@ const ProfileBox = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setUser((prev) => ({ ...prev, profile_picture }));
+      setUser((prev) => ({
+        ...prev,
+        profileImage: profile_picture,
+        name: user.name,
+        status: user.status,
+      }));
+
       setSelectedFile(null);
       setFeedback('Profile updated successfully!');
       setIsEditing(false);
@@ -117,16 +91,8 @@ const ProfileBox = () => {
       console.error('Profile update failed:', err);
       setFeedback('Failed to update profile');
     }
-
     setLoading(false);
   };
-
-  // Prepare full image URL for display
-  const profileImageUrl = user.profile_picture
-    ? user.profile_picture.startsWith('http')
-      ? user.profile_picture
-      : `${backendUrl}${user.profile_picture}`
-    : null;
 
   return (
     <div
@@ -146,7 +112,6 @@ const ProfileBox = () => {
       }}
       onClick={() => !isEditing && setIsEditing(true)}
     >
-      {/* Name and Profile Picture on the same line */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <label
           htmlFor="profileUpload"
@@ -154,7 +119,7 @@ const ProfileBox = () => {
             width: '40px',
             height: '40px',
             borderRadius: '8px',
-            background: profileImageUrl ? 'transparent' : '#FFA78D',
+            background: user.profileImage ? 'transparent' : '#FFA78D',
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
@@ -176,9 +141,9 @@ const ProfileBox = () => {
               alt="Selected Profile"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
-          ) : profileImageUrl ? (
+          ) : user.profileImage ? (
             <img
-              src={profileImageUrl}
+              src={user.profileImage}
               alt={user.name}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
@@ -214,10 +179,9 @@ const ProfileBox = () => {
         />
       </div>
 
-      {/* Conditionally render the editable fields only if editing */}
       {isEditing && (
         <>
-          {profileImageUrl && !selectedFile && (
+          {user.profileImage && !selectedFile && (
             <button
               onClick={handleImageRemove}
               style={{
@@ -269,7 +233,6 @@ const ProfileBox = () => {
         </>
       )}
 
-      {/* Feedback Message */}
       {feedback && (
         <p
           style={{

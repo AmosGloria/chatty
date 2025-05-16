@@ -4,11 +4,9 @@ const SearchButton = ({ onChange, value }) => {
   return (
     <div
       style={{
-        position: 'relative',
-        width: 320,
-        height: 56,
-        top: -1100,
-        left: 1000,
+        width: 300,
+        height: 50,
+        
       }}
     >
       {/* Wrapper to contain SVG and input together */}

@@ -122,10 +122,10 @@ const getReplies = async (req, res) => {
   }
 };
 
-// Delete a message by ID (Admins only)
+// Delete a message by ID (sender of message and Admins only)
 const deleteMessage = async (req, res) => {
   const messageId = req.params.id;
-  const userId = req.user.id; // Authenticated user ID
+  const userId = req.user.userId; // Authenticated user ID
 
   try {
     // Fetch the message to get sender and channel
@@ -140,10 +140,16 @@ const deleteMessage = async (req, res) => {
 
     const message = messages[0];
 
+    console.log('Message sender ID:', message.user_id);
+    console.log('Logged-in user ID:', userId);
+
     // If user is the message sender, allow deletion
-    if (message.user_id === userId) {
+    if (parseInt(message.user_id) === parseInt(userId)) {
+      console.log('User is the sender of the message');
       // authorized
     } else {
+      console.log('User is not the sender, checking admin/creator status...');
+
       // Check if user is channel admin
       const [admins] = await db.query(
         'SELECT * FROM channel_members WHERE channel_id = ? AND user_id = ? AND role = ?',
@@ -174,5 +180,6 @@ const deleteMessage = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete message' });
   }
 };
+
 
 module.exports = { sendMessage, getMessages, replyToMessage, getReplies, deleteMessage };

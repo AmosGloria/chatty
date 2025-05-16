@@ -97,7 +97,7 @@ const MessagesResponse = ({
                   alt={msg.user_name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
-              ) : null /* No fallback letter per your request */}
+              ) : null }
             </div>
 
             {/* Message bubble */}
