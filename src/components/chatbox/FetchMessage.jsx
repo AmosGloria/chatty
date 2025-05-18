@@ -31,9 +31,11 @@ const FetchMessage = ({ channelId, user }) => {
 
     socket.emit('joinChannel', channelId);
 
-    const handleReceiveMessage = (newMessage) => {
-      setMessages((prev) => [...prev, newMessage]);
-    };
+   const handleReceiveMessage = (newMessage) => {
+  if (newMessage.channel_id !== channelId) return; 
+  setMessages((prev) => [...prev, newMessage]);
+};
+
 
     socket.on('receiveMessage', handleReceiveMessage);
 
@@ -43,19 +45,29 @@ const FetchMessage = ({ channelId, user }) => {
   }, [channelId, fetchMessages]);
 
   // Delete message handler
-  const handleDelete = async (messageId) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/messages/${messageId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== messageId));
-    } catch (error) {
-      console.error('Failed to delete message:', error);
-      alert('Could not delete message. You might not have permission.');
-    }
-  };
+ const handleDelete = async (messageId) => {
+  try {
+    // Log the message to be deleted
+    const targetMessage = messages.find((msg) => msg.id === messageId);
+    console.log(`🗑 Deleting message ID: ${messageId}`);
+    console.log(' Message from state before deletion:', targetMessage);
+
+    const res = await axios.delete(`http://localhost:5000/api/messages/${messageId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+
+    console.log(' Delete response:', res.data);
+
+    // Remove from local state
+    setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== messageId));
+  } catch (error) {
+    console.error(' Failed to delete message:', error);
+    alert('Could not delete message. You might not have permission.');
+  }
+};
+
 
   // Stub handlers for other actions (replace with your logic)
   const handleReply = (msg) => {

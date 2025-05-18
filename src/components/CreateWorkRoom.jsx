@@ -42,6 +42,7 @@ const CreateWorkRoom = ({ setError, fetchChannels }) => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log(' Backend response:', data);
 
         setChannelName('');
         setDescription('');
@@ -50,15 +51,25 @@ const CreateWorkRoom = ({ setError, fetchChannels }) => {
 
         setSuccessMessage(`Workroom created successfully with default team "#general"`);
 
-        await fetchChannels();
+        try {
+          await fetchChannels(); 
+        } catch (fetchErr) {
+          console.warn(" fetchChannels failed:", fetchErr);
+        }
 
-        // Redirect to the default team's page
-        navigate(`/teams/${data.defaultTeamId}`);
+        if (data.defaultTeamId) {
+          navigate(`/teams/${data.defaultTeamId}`);
+        } else {
+          console.warn(" No defaultTeamId in response; skipping redirect.");
+        }
+
       } else {
         const errorData = await response.json();
-        setErrorState(errorData.error);
+        setErrorState(errorData.error || 'Something went wrong');
       }
+
     } catch (err) {
+      console.error(' Channel creation catch error:', err);
       setErrorState('Failed to create channel');
     } finally {
       setIsLoading(false);
@@ -92,8 +103,7 @@ const CreateWorkRoom = ({ setError, fetchChannels }) => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter a description of the workroom"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md"
-          />
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"/>
         </div>
         <div className="space-y-1">
           <label htmlFor="category" className="block text-sm font-medium text-gray-700">
@@ -103,8 +113,7 @@ const CreateWorkRoom = ({ setError, fetchChannels }) => {
             id="category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md"
-          >
+            className="w-full px-4 py-2 border border-gray-300 rounded-md">
             <option value="team">Team Workspace</option>
             <option value="project">Project Workspace</option>
             <option value="community">Community Workspace</option>

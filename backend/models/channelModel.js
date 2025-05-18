@@ -44,7 +44,7 @@ const addUserToChannel = async (userId, workRoomId) => {
 // Get the default team for a work room
 const getDefaultTeam = async (channelId) => {
   const [rows] = await db.query(
-    'SELECT id FROM teams WHERE work_room_id = ? AND is_default = TRUE LIMIT 1',
+    'SELECT id FROM teams WHERE channel_id = ? AND is_default = TRUE LIMIT 1',
     [channelId]
   );
   return rows[0];

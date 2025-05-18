@@ -68,7 +68,7 @@ const MessageBox = ({ channelId }) => {
         message: {
           content: message,
           username: user.name,
-          profileImage: user.profileImage || '',
+          profileImage: user.profileImage,
         },
       });
 

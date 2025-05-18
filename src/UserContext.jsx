@@ -1,9 +1,10 @@
+// UserContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 export const UserContext = createContext();
 
-export const UserProvider = ({ children }) => {
+export const UserProvider = ({ children, token }) => {
   const [user, setUser] = useState({
     name: '',
     profileImage: '',
@@ -11,10 +12,12 @@ export const UserProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+    if (!token) {
+      setUser({ name: '', profileImage: '', status: '' });
+      return;
+    }
 
+    const fetchUser = async () => {
       try {
         const res = await axios.get('http://localhost:5000/api/auth/profile', {
           headers: { Authorization: `Bearer ${token}` },
@@ -31,11 +34,12 @@ export const UserProvider = ({ children }) => {
         });
       } catch (err) {
         console.error('Failed to fetch user profile:', err);
+        setUser({ name: '', profileImage: '', status: '' }); // Clear user on failure
       }
     };
 
     fetchUser();
-  }, []);
+  }, [token]);
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
