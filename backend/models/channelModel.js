@@ -34,7 +34,7 @@ const createChannel = async (name, description, createdBy, category, isPrivate) 
 };
 
 // Add user to a work room
-const addUserToChannel = async (userId, workRoomId) => {
+const addUserToChannel = async (userId, channelId) => {
   await db.query(
     'INSERT INTO channel_members (user_id, channel_id) VALUES (?, ?)',
     [userId, channelId]

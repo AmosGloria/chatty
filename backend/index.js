@@ -6,6 +6,7 @@ const session = require('express-session');
 require('dotenv').config();
 require('./passportConfig');
 
+
 const authRoutes = require('./routes/authRoutes');
 const channelRoutes = require('./routes/channelRoutes');
 const messageRoutes = require('./routes/messageRoutes');
@@ -13,6 +14,7 @@ const reactionRoutes = require('./routes/reactionRoutes');
 const channelMemberRoutes = require('./routes/channelMemberRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const teamRoutes = require('./routes/teamRoutes');
+const invitationRoutes = require('./routes/invitationRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -64,6 +66,7 @@ app.use('/api/channel-members', channelMemberRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/invitations', invitationRoutes);
 
 
 app.get('/', (req, res) => {

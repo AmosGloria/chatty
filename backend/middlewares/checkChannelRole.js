@@ -20,7 +20,7 @@ const checkChannelRole = (requiredRole) => {
     }
 
     try {
-      // 🔍 Get member role
+      //  Get member role
       const member = await getChannelMemberRole(channelId, user.userId);
 
       //  Not in the channel
