@@ -20,8 +20,7 @@ const LoginForm = ({ setToken }) => {
       if (response.ok) {
         const data = await response.json();
         setToken(data.token);                           // Save token in React state
-        localStorage.setItem('token', data.token);       // (Optional) Save token in localStorage
-        navigate('/home');                               // Redirect to HomePage
+        localStorage.setItem('token', data.token);       // Save token in localStorage
       } else {
         const errorData = await response.text();         // read as text not JSON
         setError(errorData);
@@ -50,8 +49,7 @@ const LoginForm = ({ setToken }) => {
           value={loginPassword}
           onChange={(e) => setLoginPassword(e.target.value)}
           className="w-full p-3 border rounded mb-4"
-          required
-        />
+          required/>
         <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition hover:cursor-pointer">
           Sign In
         </button>

@@ -16,7 +16,7 @@ const InvitePeopleBox = ({ channelId, token }) => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/channel-members/${channelId}/invite`,
+        `http://localhost:5000/api/invitations/invite`,
         { email, role, reason },
         {
           headers: {

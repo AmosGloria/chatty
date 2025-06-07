@@ -29,7 +29,7 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
     const token = jwt.sign({ userId: req.user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.redirect(`http://localhost:5173/google-success?token=${token}`);  // <--- changed from res.json() to res.redirect()
+    res.redirect(`http://localhost:5173/google-success?token=${token}`);
   }
 );
 

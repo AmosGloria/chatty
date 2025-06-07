@@ -9,7 +9,7 @@ const GoogleSuccess = ({ setToken }) => {
     const token = params.get('token');
     if (token) {
       setToken(token);
-      localStorage.setItem('token', token);  // Optional: Save permanently
+      localStorage.setItem('token', token); 
       navigate('/home');
     }
   }, [setToken, navigate]);
