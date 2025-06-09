@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; 
 import GoogleLoginButton from './GoogleLoginButton';
 
 const LoginForm = ({ setToken }) => {
-  const navigate = useNavigate();
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate(); 
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,10 +19,11 @@ const LoginForm = ({ setToken }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setToken(data.token);                           // Save token in React state
-        localStorage.setItem('token', data.token);       // Save token in localStorage
+        setToken(data.token);                         
+        localStorage.setItem('token', data.token);    
+        navigate('/home'); 
       } else {
-        const errorData = await response.text();         // read as text not JSON
+        const errorData = await response.text();         
         setError(errorData);
       }
     } catch (err) {
@@ -49,7 +50,8 @@ const LoginForm = ({ setToken }) => {
           value={loginPassword}
           onChange={(e) => setLoginPassword(e.target.value)}
           className="w-full p-3 border rounded mb-4"
-          required/>
+          required
+        />
         <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition hover:cursor-pointer">
           Sign In
         </button>
