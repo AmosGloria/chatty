@@ -1,23 +1,30 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const InvitePeopleBox = ({ channelId, token }) => {
+const InvitePeopleBox = ({ channelId, token: propToken }) => {
   const [isOpen, setIsOpen] = useState(false);   // Control visibility
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Member');
   const [reason, setReason] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
 
+  // Always get the latest token from localStorage if not passed as prop
+  const token = propToken || localStorage.getItem('token');
+
   const handleSendInvite = async () => {
+    if (!token) {
+      setStatusMessage('You must be logged in to invite users.');
+      return;
+    }
     if (!email) {
       setStatusMessage('Please enter an email address');
       return;
     }
-
+    console.log('Invite token being sent:', token); // Debug log
     try {
       const response = await axios.post(
         `http://localhost:5000/api/invitations/invite`,
-        { email, role, reason },
+        { email, role, reason, channelId }, // Pass channelId in the request body
         {
           headers: {
             Authorization: `Bearer ${token}`,

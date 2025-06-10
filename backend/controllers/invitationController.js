@@ -25,9 +25,14 @@ async function sendEmail(to, subject, text) {
 async function sendInvitation(req, res) {
   try {
     const inviterUserId = req.user.userId;
-    const { invitedUserId, channelId } = req.body;
+    const { email, channelId } = req.body;
 
-    // Basic validations omitted for brevity (check channel existence, etc.)
+    // Look up invited user by email
+    const [user] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (!user.length) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const invitedUserId = user[0].id;
 
     // Create invite record
     const inviteId = await invitationModel.createInvitation(inviterUserId, invitedUserId, channelId);
@@ -38,7 +43,6 @@ async function sendInvitation(req, res) {
     if (!channel.length) return res.status(400).json({ error: 'Channel not found' });
 
     const creatorId = channel[0].created_by;
-
     const [adminUser] = await db.query('SELECT email, name FROM users WHERE id = ?', [creatorId]);
     if (adminUser.length) {
       const admin = adminUser[0];
