@@ -2,6 +2,12 @@ const db = require('../connectDatabase');
 
 // Create an invitation record
 async function createInvitation(inviterUserId, invitedUserId, channelId) {
+  // Defensive: log all values for debugging
+  console.log('createInvitation called with:', { inviterUserId, invitedUserId, channelId });
+  // If channelId is missing, throw an error
+  if (!channelId) throw new Error('channelId is required');
+  // If invitedUserId is undefined, set to null explicitly
+  if (typeof invitedUserId === 'undefined') invitedUserId = null;
   const [result] = await db.query(
     `INSERT INTO channel_invitations 
       (inviter_user_id, invited_user_id, channel_id, status, admin_notified, admin_approved)
@@ -65,6 +71,15 @@ async function markAdminNotified(inviteId) {
   return result.affectedRows;
 }
 
+// Set invited_user_id for a pending invitation (for new users)
+async function setInvitedUserId(inviteId, userId) {
+  const [result] = await db.query(
+    `UPDATE channel_invitations SET invited_user_id = ? WHERE id = ?`,
+    [userId, inviteId]
+  );
+  return result.affectedRows;
+}
+
 module.exports = {
   createInvitation,
   getInvitationById,
@@ -72,4 +87,5 @@ module.exports = {
   updateAdminApproval,
   updateUserResponse,
   markAdminNotified,
+  setInvitedUserId,
 };

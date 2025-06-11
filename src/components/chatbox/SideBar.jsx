@@ -63,7 +63,7 @@ const Sidebar = ({ selectedChannelId }) => {
 
       <DirectMessagesBox />
       <ThreadsBox />
-      <InvitePeopleBox />
+      <InvitePeopleBox channelId={selectedChannelId} />
       <ProfileBox initialUser={{ name: 'Jane Smith', status: 'Available' }} />
     </div>
   );

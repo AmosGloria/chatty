@@ -8,6 +8,7 @@ import CreateWorkRoom from './components/CreateWorkRoom';
 import GoogleSuccess from './components/chatbox/GoogleSuccess';
 import WorkroomLayout from './components/chatbox/WorkroomLayout';
 import { UserProvider } from './UserContext';
+import InviteResponse from './components/InviteResponse';
 
 function AppRoutes({ token, setToken }) {
   const location = useLocation();
@@ -46,6 +47,7 @@ function AppRoutes({ token, setToken }) {
       <Route path="/home" element={<HomePage />} />
       <Route path="/create-workroom" element={<CreateWorkRoom />} />
       <Route path="/workroom/:channelId" element={<WorkroomLayout />} />
+      <Route path="/invite-response" element={<InviteResponse />} />
       <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   );

@@ -16,6 +16,10 @@ const InvitePeopleBox = ({ channelId, token: propToken }) => {
       setStatusMessage('You must be logged in to invite users.');
       return;
     }
+    if (!channelId) {
+      setStatusMessage('Cannot send invite: No channel selected.');
+      return;
+    }
     if (!email) {
       setStatusMessage('Please enter an email address');
       return;
@@ -46,6 +50,11 @@ const InvitePeopleBox = ({ channelId, token: propToken }) => {
     <div style={{ width: '340px', 
        marginBottom: '10px',
     }}>
+      {(!channelId) && (
+        <div style={{ color: 'red', fontWeight: 600, marginBottom: 8 }}>
+          No channel selected. Please select a workroom to invite people.
+        </div>
+      )}
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
@@ -61,6 +70,7 @@ const InvitePeopleBox = ({ channelId, token: propToken }) => {
           cursor: 'pointer',
           marginBottom: isOpen ? '12px' : '0',
         }}
+        disabled={!channelId}
       >
         {isOpen ? 'Close Invite Panel' : 'Invite People'}
       </button>
