@@ -19,7 +19,7 @@ async function createInvitation(inviterUserId, invitedUserId, channelId) {
 
 // Get invitation by ID
 async function getInvitationById(id) {
-  const [rows] = await db.query('SELECT * FROM channel_invitations WHERE id = ?', [id]);
+  const [rows] = await db.query('SELECT ci.*, u.email FROM channel_invitations ci LEFT JOIN users u ON ci.invited_user_id = u.id WHERE ci.id = ?', [id]);
   return rows[0];
 }
 

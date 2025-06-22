@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const SignupForm = () => {
@@ -7,19 +7,44 @@ const SignupForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [emailLocked, setEmailLocked] = useState(false);
+  const [inviteToken, setInviteToken] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlEmail = params.get('email');
+    const urlToken = params.get('token');
+    const urlChannelId = params.get('channelId');
+    if (urlEmail && urlToken) {
+      setEmail(urlEmail);
+      setEmailLocked(true);
+      setInviteToken(urlToken);
+      localStorage.setItem('pendingInviteToken', urlToken);
+      localStorage.setItem('pendingInviteEmail', urlEmail);
+      if (urlChannelId) localStorage.setItem('pendingInviteChannelId', urlChannelId);
+    }
+  }, []);
 
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
+      const payload = { name, email, password };
+      if (inviteToken) payload.inviteToken = inviteToken;
       const response = await fetch('http://localhost:5000/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
-        alert('Signup successful! Please log in.');
-        navigate('/');
+        const channelId = localStorage.getItem('pendingInviteChannelId');
+        if (channelId) {
+          localStorage.removeItem('pendingInviteChannelId');
+          navigate(`/workroom/${channelId}`);
+        } else {
+          alert('Signup successful! Please log in.');
+          navigate('/login?email=' + encodeURIComponent(email) + (inviteToken ? ('&token=' + encodeURIComponent(inviteToken)) : ''));
+        }
       } else {
         const errorData = await response.text(); 
         setError(errorData);
@@ -27,6 +52,14 @@ const SignupForm = () => {
     } catch (err) {
       setError('Something went wrong. Please try again.');
     }
+  };
+
+  const handleGoToLogin = (e) => {
+    e.preventDefault();
+    const channelId = localStorage.getItem('pendingInviteChannelId');
+    let url = '/login?email=' + encodeURIComponent(email) + (inviteToken ? ('&token=' + encodeURIComponent(inviteToken)) : '');
+    if (channelId) url += `&channelId=${channelId}`;
+    navigate(url);
   };
 
   return (
@@ -49,6 +82,8 @@ const SignupForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-3 border rounded mb-4"
           required
+          readOnly={emailLocked}
+          style={emailLocked ? { backgroundColor: '#f3f3f3', color: '#888' } : {}}
         />
         <input
           type="password"
@@ -62,7 +97,9 @@ const SignupForm = () => {
           Sign Up
         </button>
         <div className="mt-4 text-center">
-          <a href="/" className="text-blue-600 hover:underline">Already have an account? Sign in</a>
+          <button onClick={handleGoToLogin} className="text-blue-600 hover:underline bg-transparent border-none cursor-pointer" type="button">
+            Already have an account? Log in
+          </button>
         </div>
       </form>
     </div>
